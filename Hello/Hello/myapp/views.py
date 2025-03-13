@@ -4,6 +4,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import User
 from .serializer import Userserializer
+from rest_framework import viewsets
+from .models import Product
+from .serializer import ProductSerializer
+from django.http import JsonResponse
+from .tasks import send_bulk_email
 
 @api_view(['GET'])
 def get_user(request):
@@ -42,6 +47,16 @@ def delete_user(request, user_id):
     
     user.delete()
     return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+
+def send_mail_view(request):
+    recipient_list = ['harshadakadam79@gmail.com', 'harshadakadam709@gmail.com']  # Replace with actual emails
+    send_bulk_email.delay("Hello!", "This is a bulk email test.", recipient_list)
+    return JsonResponse({"message": "Emails are being sent!"})
 
 
 # Create your views here.
